@@ -7,6 +7,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createDofDocument } from '../db';
 import { storagePut } from '../storage';
+import https from 'https';
 
 export interface ScrapedDocument {
   title: string;
@@ -28,11 +29,25 @@ export async function scrapeDOF(date: Date): Promise<ScrapedDocument[]> {
   
   try {
     console.log(`[DOF Scraper] Fetching: ${url}`);
+    
+    // Solution 1: Disable SSL verification (for development/testing)
+    // Solution 2: Robust headers and user-agent
+    const httpsAgent = new https.Agent({  
+      rejectUnauthorized: false // Disable SSL verification
+    });
+    
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'es-MX,es;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
       },
-      timeout: 30000
+      timeout: 30000,
+      httpsAgent, // Use custom HTTPS agent
+      maxRedirects: 5
     });
     
     const $ = cheerio.load(response.data);
@@ -72,11 +87,19 @@ export async function scrapeDOF(date: Date): Promise<ScrapedDocument[]> {
  */
 export async function fetchDocumentContent(url: string): Promise<string> {
   try {
+    const httpsAgent = new https.Agent({  
+      rejectUnauthorized: false
+    });
+    
     const response = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'es-MX,es;q=0.9,en;q=0.8'
       },
-      timeout: 30000
+      timeout: 30000,
+      httpsAgent,
+      maxRedirects: 5
     });
     
     const $ = cheerio.load(response.data);

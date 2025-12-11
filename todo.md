@@ -113,3 +113,8 @@
 - [x] Corregir errores en emailService.ts
 - [x] Instalar @types/pg
 - [x] Verificar que no haya errores de compilación (0 errores)
+
+## Bug: Error de Certificado SSL en Scraper
+- [x] Desactivar verificación SSL para desarrollo/pruebas (httpsAgent con rejectUnauthorized: false)
+- [x] Configurar headers y user-agent más robustos (Chrome 120, headers completos)
+- [ ] Implementar fallback a servicio de scraping alternativo (pendiente si es necesario)
