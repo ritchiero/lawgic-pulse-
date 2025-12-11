@@ -88,3 +88,10 @@
 - [x] Hacer más visible el botón "Ver reporte de hoy" (size lg, shadow, icon)
 - [x] Mejorar diseó de badges (azul para áreas, primary para tipo, mejor contraste)
 - [x] Pulir diseño general (fondo muted, cards con hover, mejor espaciado)
+
+## Rediseño Completo del Preview
+- [x] Resúmenes específicos con datos concretos (vigencia, arts modificados, impacto %)
+- [x] Información clave visible (publicante, fecha vigencia, meta info)
+- [x] Diseño visual impactante (badges alto/medio/bajo impacto con iconos y colores)
+- [x] Mostrar valor real ("2 minutos vs 2 horas", "40hrs/mes = $XX,XXX")
+- [x] Títulos cortos y directos (reformulados, máx 8 palabras, enfoque en cambio)
