@@ -41,8 +41,13 @@ export default function Home() {
         areas: selectedAreas
       });
 
-      // Redirect to Stripe Checkout
-      window.location.href = result.checkoutUrl;
+      // Show success message
+      toast.success("¡Suscripción creada! Redirigiendo...");
+
+      // Redirect to thank you page
+      setTimeout(() => {
+        window.location.href = result.redirectUrl;
+      }, 1000);
 
     } catch (error: any) {
       toast.error(error.message || "Error al procesar la suscripción");

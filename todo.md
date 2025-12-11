@@ -53,3 +53,8 @@
 
 ## Mejoras de Copywriting
 - [x] Actualizar headline principal para reflejar DOF + jurisprudencia
+
+## Modo de Prueba
+- [x] Modificar backend para permitir registro sin Stripe
+- [x] Actualizar frontend para registro directo
+- [x] Crear suscripciones con estado "active" sin pago

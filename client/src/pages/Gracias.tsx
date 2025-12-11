@@ -22,11 +22,10 @@ export default function Gracias() {
 
           {/* Heading */}
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            ¡Bienvenido a Lawgic Pulse!
+            ¡Suscripción activada! 🎉
           </h1>
-
           <p className="text-lg text-muted-foreground mb-8">
-            Tu suscripción está activa. En breve recibirás un email de confirmación.
+            Tu cuenta en Lawgic Pulse está lista. Recibirás un email de confirmación.
           </p>
 
           {/* What's Next */}

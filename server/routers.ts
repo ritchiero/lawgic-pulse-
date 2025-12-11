@@ -69,26 +69,40 @@ export const appRouter = router({
           });
         }
 
-        // Create pending subscription
+        // Create active subscription (no payment required for testing)
         await db.createSubscription({
           userId: user.id,
-          status: 'pending'
+          status: 'active'
         });
 
-        // Save selected areas temporarily (will be confirmed after payment)
+        // Save selected areas
         await db.setUserAreas(user.id, validAreas);
 
-        // Create Stripe checkout session
-        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
-        const checkoutUrl = await createCheckoutSession({
-          email: input.email,
-          userId: user.id,
-          areas: validAreas,
-          successUrl: `${baseUrl}/gracias?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${baseUrl}/?cancelled=true`
-        });
+        // Send welcome email
+        try {
+          const { sendWelcomeEmail } = await import('./services/emailService');
+          await sendWelcomeEmail(input.email, input.name || '');
+        } catch (error) {
+          console.error('[Subscription] Error sending welcome email:', error);
+        }
 
-        return { checkoutUrl };
+        // Notify owner
+        try {
+          const { notifyOwner } = await import('./_core/notification');
+          await notifyOwner({
+            title: '🎉 Lawgic Pulse - Nueva suscripción',
+            content: `Email: ${input.email}\nÁreas: ${validAreas.join(', ')}`
+          });
+        } catch (error) {
+          console.error('[Subscription] Error notifying owner:', error);
+        }
+
+        // Return success (no Stripe redirect)
+        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+        return { 
+          success: true,
+          redirectUrl: `${baseUrl}/gracias`
+        };
       }),
 
     // Get user subscription status
