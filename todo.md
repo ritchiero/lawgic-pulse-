@@ -76,3 +76,9 @@
 - [x] Actualizar formulario de registro con nuevas áreas
 - [x] Actualizar landing page con contador de 25 áreas
 - [ ] Actualizar clasificador de IA para usar keywords personalizados (pendiente)
+
+## Vista Previa del Reporte
+- [x] Crear endpoint público para generar preview del reporte diario
+- [x] Agregar sección de ejemplo estático en la landing
+- [x] Botón "Ver reporte de hoy" que ejecuta scraping en tiempo real
+- [x] Diseño del preview consistente con emails reales

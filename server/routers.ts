@@ -173,6 +173,89 @@ export const appRouter = router({
   }),
 
   job: jobRouter,
+
+  // Public preview of daily report
+  preview: router({
+    getDaily: publicProcedure
+      .input(z.object({
+        areas: z.array(z.string()).optional()
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { scrapeDOF } = await import('./services/dofScraper');
+          const { classifyDocument } = await import('./services/aiClassifier');
+          
+          // Scrape today's DOF
+          const today = new Date();
+          const documents = await scrapeDOF(today);
+          
+          // If no documents, return sample data
+          if (documents.length === 0) {
+            return {
+              date: new Date().toISOString(),
+              documents: [
+                {
+                  title: "ACUERDO por el que se modifica el diverso que establece el horario de verano",
+                  documentType: "ACUERDO",
+                  areas: ["administrativo"],
+                  summary: "Se establecen las fechas de inicio y término del horario de verano para el ejercicio fiscal 2025.",
+                  url: "https://www.dof.gob.mx/nota_detalle.php?codigo=5000000&fecha=10/12/2024"
+                },
+                {
+                  title: "DECRETO por el que se reforman diversas disposiciones de la Ley del ISR",
+                  documentType: "DECRETO",
+                  areas: ["fiscal"],
+                  summary: "Se modifican los artículos 25 y 28 de la LISR para actualizar las deducciones autorizadas y el tratamiento de inversiones.",
+                  url: "https://www.dof.gob.mx/nota_detalle.php?codigo=5000001&fecha=10/12/2024"
+                },
+                {
+                  title: "RESOLUCIÓN que modifica la Resolución Miscelánea Fiscal para 2024",
+                  documentType: "RESOLUCIÓN",
+                  areas: ["fiscal", "comercio_exterior"],
+                  summary: "Se actualizan las reglas para la presentación de declaraciones complementarias y se establecen facilidades para contribuyentes del sector exportador.",
+                  url: "https://www.dof.gob.mx/nota_detalle.php?codigo=5000002&fecha=10/12/2024"
+                }
+              ],
+              isSample: true
+            };
+          }
+          
+          // Classify documents with AI
+          const classified = await Promise.all(
+            documents.slice(0, 10).map(async (doc) => {
+              const classification = await classifyDocument(doc.title, doc.contentExcerpt || '');
+              return {
+                title: doc.title,
+                documentType: doc.documentType,
+                areas: classification.areas,
+                summary: classification.summary,
+                url: doc.dofUrl
+              };
+            })
+          );
+          
+          // Filter by areas if provided
+          let filtered = classified;
+          if (input.areas && input.areas.length > 0) {
+            filtered = classified.filter(doc => 
+              doc.areas.some(area => input.areas!.includes(area))
+            );
+          }
+          
+          return {
+            date: new Date().toISOString(),
+            documents: filtered,
+            isSample: false
+          };
+        } catch (error) {
+          console.error('[Preview] Error generating preview:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error al generar vista previa'
+          });
+        }
+      })
+  }),
 });
 
 export type AppRouter = typeof appRouter;

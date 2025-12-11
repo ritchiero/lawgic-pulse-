@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import ReportPreview from "@/components/ReportPreview";
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -229,6 +230,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Report Preview */}
+      <ReportPreview />
 
       {/* Footer */}
       <footer className="border-t border-border mt-20 py-8">
