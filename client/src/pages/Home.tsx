@@ -82,8 +82,9 @@ export default function Home() {
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl border-l-4 border-border pl-4">
-            Recibe cada mañana solo las publicaciones del DOF relevantes para tus áreas de práctica, 
-            resumidas y clasificadas automáticamente con inteligencia artificial.
+            Recibe cada mañana las publicaciones del DOF relevantes para tus áreas de práctica, 
+            más un resumen semanal de tesis, jurisprudencias y criterios cada viernes. 
+            Todo resumido y clasificado automáticamente con inteligencia artificial.
           </p>
 
           {/* Stats */}
@@ -188,12 +189,20 @@ export default function Home() {
           </div>
 
           {/* Features */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
               <div className="text-2xl mb-2">📬</div>
-              <h3 className="font-semibold text-foreground">Cada mañana en tu inbox</h3>
+              <h3 className="font-semibold text-foreground">Diario: DOF</h3>
               <p className="text-sm text-muted-foreground">
-                Recibes el resumen antes de las 8:00 AM hora CDMX
+                Cada mañana antes de las 8:00 AM
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-2xl mb-2">📚</div>
+              <h3 className="font-semibold text-foreground">Viernes: Tesis</h3>
+              <p className="text-sm text-muted-foreground">
+                Jurisprudencias y criterios relevantes
               </p>
             </div>
 
@@ -201,7 +210,7 @@ export default function Home() {
               <div className="text-2xl mb-2">🎯</div>
               <h3 className="font-semibold text-foreground">Filtrado inteligente</h3>
               <p className="text-sm text-muted-foreground">
-                Solo lo relevante para tus áreas de práctica
+                Solo lo relevante para tus áreas
               </p>
             </div>
 
@@ -209,7 +218,7 @@ export default function Home() {
               <div className="text-2xl mb-2">🤖</div>
               <h3 className="font-semibold text-foreground">Resúmenes con IA</h3>
               <p className="text-sm text-muted-foreground">
-                Entiendes de qué va sin leer 50 páginas
+                Entiendes sin leer 50 páginas
               </p>
             </div>
           </div>

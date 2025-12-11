@@ -212,3 +212,152 @@ function formatDateLong(date: Date): string {
   
   return `${day} de ${month} de ${year}`;
 }
+
+/**
+ * Weekly digest content item
+ */
+export interface WeeklyDigestItem {
+  contentType: string;
+  title: string;
+  registrationNumber: string;
+  tribunal: string;
+  sourceUrl: string;
+  aiSummary: string;
+  detectedAreas: string[];
+}
+
+export interface SendWeeklyDigestParams {
+  to: string;
+  userName: string;
+  content: WeeklyDigestItem[];
+  weekNumber: number;
+  year: number;
+}
+
+/**
+ * Sends weekly digest of tesis, jurisprudencias y criterios
+ */
+export async function sendWeeklyDigest(params: SendWeeklyDigestParams): Promise<string | null> {
+  const { to, userName, content, weekNumber, year } = params;
+  
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[Email Service] RESEND_API_KEY not configured');
+    return null;
+  }
+  
+  const html = generateWeeklyDigestHTML(userName, content, weekNumber, year);
+  const subject = `Tesis y Jurisprudencias - Semana ${weekNumber} de ${year}`;
+  
+  try {
+    const response = await axios.post(
+      'https://api.resend.com/emails',
+      {
+        from: 'Lawgic Pulse <alertas@lawgic.io>',
+        to,
+        subject,
+        html
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.data.id;
+    
+  } catch (error) {
+    console.error('[Email Service] Error sending weekly digest:', error);
+    return null;
+  }
+}
+
+/**
+ * Generates HTML for weekly digest email
+ */
+function generateWeeklyDigestHTML(
+  userName: string,
+  content: WeeklyDigestItem[],
+  weekNumber: number,
+  year: number
+): string {
+  const contentByType = {
+    tesis: content.filter(c => c.contentType === 'tesis'),
+    jurisprudencia: content.filter(c => c.contentType === 'jurisprudencia'),
+    criterio: content.filter(c => c.contentType === 'criterio')
+  };
+  
+  const renderSection = (title: string, items: WeeklyDigestItem[]) => {
+    if (items.length === 0) return '';
+    
+    const itemsHTML = items.map(item => {
+      const areasHTML = item.detectedAreas
+        .map(code => {
+          const name = PRACTICE_AREA_NAMES[code] || code;
+          return `<span style="background: #ebf8ff; color: #2b6cb0; font-size: 11px; padding: 2px 6px; border-radius: 3px; margin-left: 4px;">${name}</span>`;
+        })
+        .join('');
+      
+      return `
+      <div style="background: #f8fafc; border-left: 3px solid #3B82F6; padding: 12px; margin: 15px 0;">
+        <div style="margin-bottom: 6px;">
+          <span style="background: #e2e8f0; color: #4a5568; font-size: 11px; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${item.contentType}</span>
+          ${areasHTML}
+        </div>
+        <h4 style="margin: 8px 0; font-size: 14px;">
+          <a href="${item.sourceUrl}" style="color: #1a365d; text-decoration: none;">${item.title}</a>
+        </h4>
+        ${item.registrationNumber ? `<p style="color: #718096; font-size: 12px; margin: 4px 0;">Registro: ${item.registrationNumber}</p>` : ''}
+        ${item.tribunal ? `<p style="color: #718096; font-size: 12px; margin: 4px 0;">${item.tribunal}</p>` : ''}
+        <p style="color: #4a5568; font-size: 13px; margin: 8px 0 0 0;">${item.aiSummary}</p>
+      </div>
+      `;
+    }).join('');
+    
+    return `
+    <h3 style="color: #1a365d; font-size: 16px; margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;">
+      ${title} (${items.length})
+    </h3>
+    ${itemsHTML}
+    `;
+  };
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lawgic Pulse - Resumen Semanal</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  
+  <div style="border-bottom: 3px solid #3B82F6; padding-bottom: 15px; margin-bottom: 25px;">
+    <h1 style="color: #1a365d; margin: 0; font-size: 24px;">Lawgic Pulse</h1>
+    <p style="color: #666; margin: 5px 0 0 0;">Resumen Semanal · Semana ${weekNumber} de ${year}</p>
+  </div>
+  
+  <p>Hola ${userName || 'Colega'},</p>
+  
+  <p>Esta semana encontramos <strong>${content.length}</strong> tesis, jurisprudencias y criterios relevantes para tus áreas de práctica:</p>
+  
+  ${renderSection('📚 Tesis', contentByType.tesis)}
+  ${renderSection('⚖️ Jurisprudencias', contentByType.jurisprudencia)}
+  ${renderSection('💡 Criterios Relevantes', contentByType.criterio)}
+  
+  <div style="margin-top: 40px; padding: 15px; background: #f8fafc; border-radius: 6px;">
+    <p style="margin: 0; font-size: 13px; color: #4a5568;">
+      <strong>💡 Tip:</strong> Guarda este email para consultar estos criterios cuando los necesites en tu práctica.
+    </p>
+  </div>
+  
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #666;">
+    <p>Este correo es informativo y no constituye asesoría legal.</p>
+    <p><strong>Lawgic Pulse</strong> · Un servicio de <a href="https://lawgic.io" style="color: #3B82F6;">Lawgic</a></p>
+  </div>
+  
+</body>
+</html>
+  `;
+}

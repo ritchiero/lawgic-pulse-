@@ -224,3 +224,67 @@ export async function markWebhookProcessed(id: number) {
   if (!db) throw new Error("Database not available");
   await db.update(webhookEvents).set({ processed: 1 }).where(eq(webhookEvents.id, id));
 }
+
+// ============================================
+// Weekly Content Helpers
+// ============================================
+
+export async function getUnprocessedWeeklyContent() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { weeklyContent } = await import('../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  return db.select().from(weeklyContent).where(eq(weeklyContent.processed, 0));
+}
+
+export async function updateWeeklyContentProcessed(
+  id: number,
+  aiSummary: string,
+  detectedAreas: string[]
+) {
+  const db = await getDb();
+  if (!db) return;
+  
+  const { weeklyContent } = await import('../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  await db.update(weeklyContent)
+    .set({
+      aiSummary,
+      detectedAreas: JSON.stringify(detectedAreas),
+      processed: 1
+    })
+    .where(eq(weeklyContent.id, id));
+}
+
+export async function getWeeklyContentByWeek(weekNumber: number, year: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { weeklyContent } = await import('../drizzle/schema');
+  const { eq, and } = await import('drizzle-orm');
+  
+  return db.select().from(weeklyContent)
+    .where(
+      and(
+        eq(weeklyContent.weekNumber, weekNumber),
+        eq(weeklyContent.year, year),
+        eq(weeklyContent.processed, 1)
+      )
+    );
+}
+
+export async function createSentWeeklyAlert(alert: {
+  userId: number;
+  contentId: number;
+  emailId: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  
+  const { sentWeeklyAlerts } = await import('../drizzle/schema');
+  
+  await db.insert(sentWeeklyAlerts).values(alert);
+}

@@ -11,7 +11,8 @@ Lawgic Pulse es un servicio de suscripción que extrae diariamente las publicaci
 ### Para Usuarios
 - **Suscripción mensual** de $49 MXN
 - **12 áreas de práctica** para personalizar alertas
-- **Resúmenes diarios** antes de las 8:00 AM CDMX
+- **Resúmenes diarios del DOF** antes de las 8:00 AM CDMX
+- **Resumen semanal de tesis y jurisprudencias** cada viernes a las 9:00 AM
 - **Clasificación automática** con Claude AI
 - **Cancelación flexible** sin compromisos
 
@@ -64,10 +65,10 @@ Lawgic Pulse es un servicio de suscripción que extrae diariamente las publicaci
 - Webhooks para eventos de pago
 - Customer Portal para gestión
 
-### Pipeline Diario
+### Pipeline Diario (DOF)
 
 ```
-7:00 AM CDMX
+7:00 AM CDMX - Lunes a Domingo
     ↓
 [1] Scraping DOF
     ↓
@@ -78,6 +79,24 @@ Lawgic Pulse es un servicio de suscripción que extrae diariamente las publicaci
 [4] Matching con usuarios
     ↓
 [5] Envío de emails
+    ↓
+[6] Notificación al owner
+```
+
+### Pipeline Semanal (Tesis y Jurisprudencias)
+
+```
+9:00 AM CDMX - Viernes
+    ↓
+[1] Scraping Semanario Judicial
+    ↓
+[2] Guardar en DB + S3
+    ↓
+[3] Clasificación con IA
+    ↓
+[4] Matching con usuarios
+    ↓
+[5] Envío de digests semanales
     ↓
 [6] Notificación al owner
 ```
@@ -104,8 +123,17 @@ Lawgic Pulse es un servicio de suscripción que extrae diariamente las publicaci
 - Resumen y áreas detectadas por IA
 - S3 key para documento completo
 
-**sentAlerts** - Registro de emails enviados
+**weeklyContent** - Tesis, jurisprudencias y criterios
+- Tipo de contenido (tesis/jurisprudencia/criterio)
+- Número de registro, tribunal, época
+- Resumen y áreas detectadas por IA
+- Semana y año (ISO week number)
+
+**sentAlerts** - Registro de emails diarios enviados
 - Tracking de qué se envió a quién
+
+**sentWeeklyAlerts** - Registro de digests semanales enviados
+- Tracking de contenido semanal enviado
 
 **webhookEvents** - Log de eventos de Stripe
 - Idempotencia y debugging
@@ -155,9 +183,17 @@ pnpm start
 
 ---
 
-## 🔄 Job Diario
+## 🔄 Jobs Automatizados
 
-El job diario se ejecuta automáticamente a las 7:00 AM CDMX (13:00 UTC).
+Lawgic Pulse tiene dos jobs automatizados:
+
+### Job Diario (DOF)
+
+Se ejecuta automáticamente todos los días a las 7:00 AM CDMX (13:00 UTC).
+
+### Job Semanal (Tesis y Jurisprudencias)
+
+Se ejecuta automáticamente todos los viernes a las 9:00 AM CDMX (15:00 UTC).
 
 ### Configuración del Cron
 

@@ -5,6 +5,7 @@
 
 import { router, publicProcedure } from "../_core/trpc";
 import { runDailyJob } from "../jobs/dailyJob";
+import { runWeeklyJob } from "../jobs/weeklyJob";
 import { z } from "zod";
 
 export const jobRouter = router({
@@ -27,5 +28,26 @@ export const jobRouter = router({
       });
 
       return { success: true, message: 'Daily job started' };
+    }),
+
+  // Trigger weekly job manually
+  runWeekly: publicProcedure
+    .input(z.object({
+      apiKey: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      // Simple API key protection
+      const expectedKey = process.env.ADMIN_API_KEY || 'change-me-in-production';
+      
+      if (input.apiKey !== expectedKey) {
+        throw new Error('Invalid API key');
+      }
+
+      // Run job in background
+      runWeeklyJob().catch(error => {
+        console.error('[Job Router] Weekly job failed:', error);
+      });
+
+      return { success: true, message: 'Weekly job started' };
     })
 });

@@ -36,14 +36,22 @@ export default function Gracias() {
               <li className="flex items-start gap-3">
                 <span className="text-primary mt-0.5">✓</span>
                 <span>
-                  <strong className="text-foreground">Mañana recibirás tu primer resumen</strong> con las publicaciones 
+                  <strong className="text-foreground">Mañana recibirás tu primer resumen diario</strong> con las publicaciones 
                   del DOF relevantes para tus áreas de práctica
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-primary mt-0.5">✓</span>
                 <span>
-                  Los emails llegarán <strong className="text-foreground">antes de las 8:00 AM</strong> hora de México
+                  <strong className="text-foreground">Cada viernes</strong> recibirás un resumen semanal con tesis, 
+                  jurisprudencias y criterios relevantes
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary mt-0.5">✓</span>
+                <span>
+                  Los emails llegarán <strong className="text-foreground">antes de las 8:00 AM</strong> (diarios) y 
+                  <strong className="text-foreground"> 9:00 AM viernes</strong> (semanales)
                 </span>
               </li>
               <li className="flex items-start gap-3">

@@ -40,3 +40,13 @@
 - [x] Tests para variables de entorno
 - [x] Tests para router de suscripciones
 - [x] Tests para validación de datos
+
+## Resumen Semanal (Viernes)
+- [x] Scraper para tesis y jurisprudencias del Semanario Judicial
+- [x] Scraper para criterios relevantes
+- [x] Job semanal para ejecutar cada viernes
+- [x] Template de email para resumen semanal
+- [x] Actualizar landing page con promesa de valor semanal
+- [x] Integrar clasificación de tesis por áreas de práctica
+- [x] Agregar tablas a la base de datos (weeklyContent, sentWeeklyAlerts)
+- [x] Endpoint manual para ejecutar job semanal

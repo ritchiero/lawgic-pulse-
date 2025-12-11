@@ -104,3 +104,44 @@ export const webhookEvents = mysqlTable("webhookEvents", {
 
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type InsertWebhookEvent = typeof webhookEvents.$inferInsert;
+
+/**
+ * Weekly content: Tesis, Jurisprudencias y Criterios
+ */
+export const weeklyContent = mysqlTable("weeklyContent", {
+  id: int("id").autoincrement().primaryKey(),
+  contentType: varchar("contentType", { length: 50 }).notNull(),
+  title: text("title").notNull(),
+  registrationNumber: varchar("registrationNumber", { length: 100 }),
+  tribunal: text("tribunal"),
+  epoch: varchar("epoch", { length: 50 }),
+  contentText: text("contentText"),
+  excerpt: text("excerpt"),
+  sourceUrl: text("sourceUrl"),
+  publicationDate: timestamp("publicationDate"),
+  detectedAreas: text("detectedAreas"), // JSON array
+  aiSummary: text("aiSummary"),
+  relevanceScore: int("relevanceScore"),
+  s3Key: text("s3Key"),
+  processed: int("processed").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  weekNumber: int("weekNumber").notNull(),
+  year: int("year").notNull(),
+});
+
+export type WeeklyContent = typeof weeklyContent.$inferSelect;
+export type InsertWeeklyContent = typeof weeklyContent.$inferInsert;
+
+/**
+ * Tracking of weekly alerts sent
+ */
+export const sentWeeklyAlerts = mysqlTable("sentWeeklyAlerts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  contentId: int("contentId").notNull().references(() => weeklyContent.id, { onDelete: "cascade" }),
+  emailId: text("emailId"),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+});
+
+export type SentWeeklyAlert = typeof sentWeeklyAlerts.$inferSelect;
+export type InsertSentWeeklyAlert = typeof sentWeeklyAlerts.$inferInsert;

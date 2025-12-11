@@ -15,6 +15,13 @@
       "when": 1765424566632,
       "tag": "0001_absent_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765426952297,
+      "tag": "0002_hot_wild_pack",
+      "breakpoints": true
     }
   ]
 }
