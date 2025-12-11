@@ -76,9 +76,9 @@ export default function Home() {
           </div>
 
           {/* Main Heading */}
-          <h2 className="text-4xl md:text-6xl font-serif mb-6 leading-tight">
-            <span className="text-foreground">Tu radar diario del </span>
-            <span className="text-primary italic font-serif">Diario Oficial</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light mb-6 leading-tight">
+            <span className="text-foreground">Tu radar legal: </span>
+            <span className="text-primary italic font-serif">DOF + Jurisprudencia</span>
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl border-l-4 border-border pl-4">

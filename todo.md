@@ -50,3 +50,6 @@
 - [x] Integrar clasificación de tesis por áreas de práctica
 - [x] Agregar tablas a la base de datos (weeklyContent, sentWeeklyAlerts)
 - [x] Endpoint manual para ejecutar job semanal
+
+## Mejoras de Copywriting
+- [x] Actualizar headline principal para reflejar DOF + jurisprudencia
