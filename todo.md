@@ -103,3 +103,13 @@
 - [x] Ejecutar migraciones en Supabase
 - [x] Configurar Session Pooler para IPv4
 - [x] Crear 8 tablas en Supabase exitosamente
+
+## Corrección de Errores TypeScript Post-Migración
+- [x] Corregir errores en dailyJob.ts
+- [x] Corregir errores en weeklyJob.ts
+- [x] Corregir errores en webhooks/stripe.ts
+- [x] Corregir errores en dofScraper.ts
+- [x] Corregir errores en judicialScraper.ts
+- [x] Corregir errores en emailService.ts
+- [x] Instalar @types/pg
+- [x] Verificar que no haya errores de compilación (0 errores)

@@ -219,7 +219,7 @@ function formatDateLong(date: Date): string {
 export interface WeeklyDigestItem {
   contentType: string;
   title: string;
-  registrationNumber: string;
+  tesis: string;
   tribunal: string;
   sourceUrl: string;
   aiSummary: string;
@@ -308,7 +308,7 @@ function generateWeeklyDigestHTML(
         <h4 style="margin: 8px 0; font-size: 14px;">
           <a href="${item.sourceUrl}" style="color: #1a365d; text-decoration: none;">${item.title}</a>
         </h4>
-        ${item.registrationNumber ? `<p style="color: #718096; font-size: 12px; margin: 4px 0;">Registro: ${item.registrationNumber}</p>` : ''}
+        ${item.tesis ? `<p style="color: #718096; font-size: 12px; margin: 4px 0;">Tesis: ${item.tesis}</p>` : ''}
         ${item.tribunal ? `<p style="color: #718096; font-size: 12px; margin: 4px 0;">${item.tribunal}</p>` : ''}
         <p style="color: #4a5568; font-size: 13px; margin: 8px 0 0 0;">${item.aiSummary}</p>
       </div>

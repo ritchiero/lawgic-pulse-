@@ -118,14 +118,12 @@ export async function saveScrapedDocuments(
       
       // Save to database
       const result = await createDofDocument({
-        publishDate,
+        publishedDate: publishDate,
         title: doc.title,
         documentType: doc.documentType,
-        dofUrl: doc.dofUrl,
-        contentExcerpt: doc.contentExcerpt,
-        edition: doc.edition,
-        s3Key,
-        processed: 0
+        url: doc.dofUrl,
+        excerpt: doc.contentExcerpt,
+        s3Key
       });
       
       // MySQL insert result doesn't have insertId in the type, but it exists at runtime

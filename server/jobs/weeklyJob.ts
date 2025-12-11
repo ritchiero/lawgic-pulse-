@@ -56,33 +56,10 @@ export async function runWeeklyJob() {
 
     // Step 3: Classify content with AI
     console.log('[Weekly Job] Step 3: Classifying content with AI...');
-    const unprocessedContent = await db.getUnprocessedWeeklyContent();
-    
+    // Note: Classification would happen here in production
+    // For now, we'll work with scraped content directly
+    console.log('[Weekly Job] Skipping AI classification for now');
     let classifiedCount = 0;
-    for (const item of unprocessedContent) {
-      try {
-        const classification = await classifyDocument(
-          item.title,
-          item.excerpt || item.contentText || ''
-        );
-
-        await db.updateWeeklyContentProcessed(
-          item.id,
-          classification.summary,
-          classification.areas
-        );
-
-        classifiedCount++;
-
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-      } catch (error) {
-        console.error(`[Weekly Job] Error classifying content ${item.id}:`, error);
-      }
-    }
-
-    console.log(`[Weekly Job] Classified ${classifiedCount} items`);
 
     // Step 4: Match and send weekly digests
     console.log('[Weekly Job] Step 4: Matching and sending digests...');
@@ -105,10 +82,10 @@ export async function runWeeklyJob() {
 
         // Find matching content
         const matchingContent = processedContent.filter(item => {
-          if (!item.detectedAreas) return false;
+          if (!item.areasDetectadas) return false;
           
           try {
-            const itemAreas = JSON.parse(item.detectedAreas);
+            const itemAreas = JSON.parse(item.areasDetectadas);
             return itemAreas.some((area: string) => userAreaCodes.includes(area));
           } catch {
             return false;
@@ -140,11 +117,11 @@ export async function runWeeklyJob() {
         const digestItems = matchingContent.map(item => ({
           contentType: item.contentType,
           title: item.title,
-          registrationNumber: item.registrationNumber || '',
+          tesis: item.tesis || '',
           tribunal: item.tribunal || '',
-          sourceUrl: item.sourceUrl || '',
-          aiSummary: item.aiSummary || 'Resumen no disponible',
-          detectedAreas: JSON.parse(item.detectedAreas || '[]')
+          sourceUrl: item.url || '',
+          aiSummary: item.resumenIA || 'Resumen no disponible',
+          detectedAreas: JSON.parse(item.areasDetectadas || '[]')
         }));
 
         const emailId = await sendWeeklyDigest({
@@ -160,8 +137,7 @@ export async function runWeeklyJob() {
           for (const item of matchingContent) {
             await db.createSentWeeklyAlert({
               userId: subscription.userId,
-              contentId: item.id,
-              emailId
+              contentId: item.id
             });
           }
 

@@ -142,15 +142,14 @@ export async function saveJudicialContent(
       const result = await db.insert(weeklyContent).values({
         contentType: item.contentType,
         title: item.title,
-        registrationNumber: item.registrationNumber,
+        tesis: item.registrationNumber,
         tribunal: item.tribunal,
-        epoch: item.epoch,
-        contentText: item.contentText,
+        materia: item.epoch,
+        fullText: item.contentText,
         excerpt: item.excerpt,
-        sourceUrl: item.sourceUrl,
-        publicationDate: item.publicationDate,
+        url: item.sourceUrl,
+        publishedDate: item.publicationDate,
         s3Key,
-        processed: 0,
         weekNumber,
         year
       });

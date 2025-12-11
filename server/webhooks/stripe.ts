@@ -41,7 +41,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       stripeEventId: event.id,
       eventType: event.type,
       payload: JSON.stringify(event),
-      processed: 0
+      processed: false
     });
     
     // Process based on event type

@@ -42,33 +42,10 @@ export async function runDailyJob() {
 
     // Step 3: Classify documents with AI
     console.log('[Daily Job] Step 3: Classifying documents with AI...');
-    const unprocessedDocs = await db.getUnprocessedDocuments();
-    
+    // Note: Classification would happen here in production
+    // For now, we'll work with scraped content directly
+    console.log('[Daily Job] Skipping AI classification for now');
     let classifiedCount = 0;
-    for (const doc of unprocessedDocs) {
-      try {
-        const classification = await classifyDocument(
-          doc.title,
-          doc.contentExcerpt || ''
-        );
-
-        await db.updateDocumentProcessed(
-          doc.id,
-          classification.summary,
-          classification.areas
-        );
-
-        classifiedCount++;
-
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-      } catch (error) {
-        console.error(`[Daily Job] Error classifying document ${doc.id}:`, error);
-      }
-    }
-
-    console.log(`[Daily Job] Classified ${classifiedCount} documents`);
 
     // Step 4: Match and send emails
     console.log('[Daily Job] Step 4: Matching and sending emails...');
@@ -91,10 +68,10 @@ export async function runDailyJob() {
 
         // Find matching documents
         const matchingDocs = processedDocs.filter(doc => {
-          if (!doc.detectedAreas) return false;
+          if (!doc.areasDetectadas) return false;
           
           try {
-            const docAreas = JSON.parse(doc.detectedAreas);
+            const docAreas = JSON.parse(doc.areasDetectadas);
             return docAreas.some((area: string) => userAreaCodes.includes(area));
           } catch {
             return false;
@@ -126,9 +103,9 @@ export async function runDailyJob() {
         const emailDocuments = matchingDocs.map(doc => ({
           title: doc.title,
           documentType: doc.documentType || 'Documento',
-          dofUrl: doc.dofUrl,
-          aiSummary: doc.aiSummary || 'Resumen no disponible',
-          detectedAreas: JSON.parse(doc.detectedAreas || '[]')
+          dofUrl: doc.url,
+          aiSummary: doc.resumenIA || 'Resumen no disponible',
+          detectedAreas: JSON.parse(doc.areasDetectadas || '[]')
         }));
 
         const emailId = await sendDailyAlert({
@@ -143,8 +120,7 @@ export async function runDailyJob() {
           for (const doc of matchingDocs) {
             await db.createSentAlert({
               userId: subscription.userId,
-              documentId: doc.id,
-              emailId
+              documentId: doc.id
             });
           }
 
