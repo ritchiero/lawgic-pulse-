@@ -82,3 +82,9 @@
 - [x] Agregar sección de ejemplo estático en la landing
 - [x] Botón "Ver reporte de hoy" que ejecuta scraping en tiempo real
 - [x] Diseño del preview consistente con emails reales
+
+## Mejoras de Preview del Reporte
+- [x] Agregar fecha del reporte y total de documentos encontrados
+- [x] Hacer más visible el botón "Ver reporte de hoy" (size lg, shadow, icon)
+- [x] Mejorar diseó de badges (azul para áreas, primary para tipo, mejor contraste)
+- [x] Pulir diseño general (fondo muted, cards con hover, mejor espaciado)
