@@ -58,3 +58,6 @@
 - [x] Modificar backend para permitir registro sin Stripe
 - [x] Actualizar frontend para registro directo
 - [x] Crear suscripciones con estado "active" sin pago
+
+## Bugs
+- [x] Error 404 "Unknown hostname" al redirigir después del registro (corregido: usando ruta relativa)

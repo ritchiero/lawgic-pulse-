@@ -98,10 +98,9 @@ export const appRouter = router({
         }
 
         // Return success (no Stripe redirect)
-        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
         return { 
           success: true,
-          redirectUrl: `${baseUrl}/gracias`
+          redirectUrl: '/gracias'
         };
       }),
 
