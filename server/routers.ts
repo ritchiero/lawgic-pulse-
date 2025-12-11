@@ -112,7 +112,7 @@ export const appRouter = router({
 
       return {
         subscription,
-        areas: areas.map(a => a.areaCode),
+        areas: areas.map(a => a.areaId),
         customKeywords: customKeywords || ''
       };
     }),

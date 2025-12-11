@@ -95,3 +95,11 @@
 - [x] Diseño visual impactante (badges alto/medio/bajo impacto con iconos y colores)
 - [x] Mostrar valor real ("2 minutos vs 2 horas", "40hrs/mes = $XX,XXX")
 - [x] Títulos cortos y directos (reformulados, máx 8 palabras, enfoque en cambio)
+
+## Migración a PostgreSQL (Supabase)
+- [x] Actualizar drizzle.config.ts para PostgreSQL
+- [x] Migrar schema de MySQL a PostgreSQL
+- [x] Actualizar dependencias (mysql2 → pg)
+- [x] Ejecutar migraciones en Supabase
+- [x] Configurar Session Pooler para IPv4
+- [x] Crear 8 tablas en Supabase exitosamente

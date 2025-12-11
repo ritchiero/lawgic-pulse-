@@ -96,7 +96,7 @@ export async function runWeeklyJob() {
       try {
         // Get user and their areas
         const userAreas = await db.getUserAreas(subscription.userId);
-        const userAreaCodes = userAreas.map(a => a.areaCode);
+        const userAreaCodes = userAreas.map(a => a.areaId);
 
         if (userAreaCodes.length === 0) {
           console.log(`[Weekly Job] User ${subscription.userId} has no areas configured`);

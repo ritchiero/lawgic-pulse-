@@ -1,5 +1,6 @@
-import { and, eq, inArray } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { and, eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import { 
   InsertUser, users, 
   subscriptions, InsertSubscription,
@@ -11,12 +12,14 @@ import {
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: Pool | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      _db = drizzle(_pool);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -40,7 +43,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const values: InsertUser = {
       openId: user.openId,
     };
-    const updateSet: Record<string, unknown> = {};
 
     const textFields = ["name", "email", "loginMethod"] as const;
     type TextField = (typeof textFields)[number];
@@ -50,34 +52,37 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       if (value === undefined) return;
       const normalized = value ?? null;
       values[field] = normalized;
-      updateSet[field] = normalized;
     };
 
     textFields.forEach(assignNullable);
 
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
     }
     if (user.role !== undefined) {
       values.role = user.role;
-      updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
       values.role = 'admin';
-      updateSet.role = 'admin';
     }
 
     if (!values.lastSignedIn) {
       values.lastSignedIn = new Date();
     }
 
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    // PostgreSQL upsert using ON CONFLICT
+    await db.insert(users)
+      .values(values)
+      .onConflictDoUpdate({
+        target: users.openId,
+        set: {
+          name: values.name,
+          email: values.email,
+          loginMethod: values.loginMethod,
+          role: values.role,
+          lastSignedIn: values.lastSignedIn,
+          updatedAt: new Date(),
+        }
+      });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -100,8 +105,8 @@ export async function getUserByOpenId(openId: string) {
 export async function createSubscription(data: InsertSubscription) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(subscriptions).values(data);
-  return result;
+  const result = await db.insert(subscriptions).values(data).returning();
+  return result[0];
 }
 
 export async function getSubscriptionByUserId(userId: number) {
@@ -114,7 +119,7 @@ export async function getSubscriptionByUserId(userId: number) {
 export async function updateSubscription(userId: number, data: Partial<InsertSubscription>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(subscriptions).set(data).where(eq(subscriptions.userId, userId));
+  await db.update(subscriptions).set({ ...data, updatedAt: new Date() }).where(eq(subscriptions.userId, userId));
 }
 
 export async function getActiveSubscriptions() {
@@ -124,7 +129,7 @@ export async function getActiveSubscriptions() {
 }
 
 // User areas helpers
-export async function setUserAreas(userId: number, areaCodes: string[]) {
+export async function setUserAreas(userId: number, areaIds: string[]) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
@@ -132,9 +137,9 @@ export async function setUserAreas(userId: number, areaCodes: string[]) {
   await db.delete(userAreas).where(eq(userAreas.userId, userId));
   
   // Insert new areas
-  if (areaCodes.length > 0) {
+  if (areaIds.length > 0) {
     await db.insert(userAreas).values(
-      areaCodes.map(code => ({ userId, areaCode: code }))
+      areaIds.map(areaId => ({ userId, areaId }))
     );
   }
 }
@@ -149,24 +154,8 @@ export async function getUserAreas(userId: number) {
 export async function createDofDocument(data: InsertDofDocument) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(dofDocuments).values(data);
-  return result;
-}
-
-export async function getUnprocessedDocuments() {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(dofDocuments).where(eq(dofDocuments.processed, 0));
-}
-
-export async function updateDocumentProcessed(id: number, aiSummary: string, detectedAreas: string[]) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.update(dofDocuments).set({
-    aiSummary,
-    detectedAreas: JSON.stringify(detectedAreas),
-    processed: 1
-  }).where(eq(dofDocuments.id, id));
+  const result = await db.insert(dofDocuments).values(data).returning();
+  return result[0];
 }
 
 export async function getDocumentsByDate(date: Date) {
@@ -177,10 +166,7 @@ export async function getDocumentsByDate(date: Date) {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
   
-  return db.select().from(dofDocuments)
-    .where(and(
-      eq(dofDocuments.processed, 1)
-    ));
+  return db.select().from(dofDocuments);
 }
 
 // Sent alerts helpers
@@ -206,8 +192,8 @@ export async function hasAlertBeenSent(userId: number, documentId: number) {
 export async function createWebhookEvent(data: InsertWebhookEvent) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(webhookEvents).values(data);
-  return result;
+  const result = await db.insert(webhookEvents).values(data).returning();
+  return result[0];
 }
 
 export async function getWebhookEventByStripeId(stripeEventId: string) {
@@ -222,56 +208,24 @@ export async function getWebhookEventByStripeId(stripeEventId: string) {
 export async function markWebhookProcessed(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(webhookEvents).set({ processed: 1 }).where(eq(webhookEvents.id, id));
+  await db.update(webhookEvents).set({ processed: true }).where(eq(webhookEvents.id, id));
 }
 
 // ============================================
 // Weekly Content Helpers
 // ============================================
 
-export async function getUnprocessedWeeklyContent() {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const { weeklyContent } = await import('../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
-  
-  return db.select().from(weeklyContent).where(eq(weeklyContent.processed, 0));
-}
-
-export async function updateWeeklyContentProcessed(
-  id: number,
-  aiSummary: string,
-  detectedAreas: string[]
-) {
-  const db = await getDb();
-  if (!db) return;
-  
-  const { weeklyContent } = await import('../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
-  
-  await db.update(weeklyContent)
-    .set({
-      aiSummary,
-      detectedAreas: JSON.stringify(detectedAreas),
-      processed: 1
-    })
-    .where(eq(weeklyContent.id, id));
-}
-
 export async function getWeeklyContentByWeek(weekNumber: number, year: number) {
   const db = await getDb();
   if (!db) return [];
   
   const { weeklyContent } = await import('../drizzle/schema');
-  const { eq, and } = await import('drizzle-orm');
   
   return db.select().from(weeklyContent)
     .where(
       and(
         eq(weeklyContent.weekNumber, weekNumber),
-        eq(weeklyContent.year, year),
-        eq(weeklyContent.processed, 1)
+        eq(weeklyContent.year, year)
       )
     );
 }
@@ -279,7 +233,6 @@ export async function getWeeklyContentByWeek(weekNumber: number, year: number) {
 export async function createSentWeeklyAlert(alert: {
   userId: number;
   contentId: number;
-  emailId: string;
 }) {
   const db = await getDb();
   if (!db) return;
@@ -298,7 +251,7 @@ export async function updateCustomKeywords(userId: number, keywords: string): Pr
   }
 
   await db.update(subscriptions)
-    .set({ customKeywords: keywords })
+    .set({ customKeywords: keywords, updatedAt: new Date() })
     .where(eq(subscriptions.userId, userId));
 }
 

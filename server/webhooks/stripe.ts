@@ -111,7 +111,7 @@ async function handleCheckoutCompleted(event: any) {
     const areas = await db.getUserAreas(data.userId);
     await notifyOwner({
       title: '🎉 Nueva suscripción en Lawgic Pulse',
-      content: `Usuario: ${user.name || user.email}\nÁreas: ${areas.map(a => a.areaCode).join(', ')}`
+      content: `Usuario: ${user.name || user.email}\nÁreas: ${areas.map(a => a.areaId).join(', ')}`
     });
     
   } catch (error) {

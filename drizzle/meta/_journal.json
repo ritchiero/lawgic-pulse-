@@ -1,33 +1,12 @@
 {
   "version": "7",
-  "dialect": "mysql",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1765424345451,
-      "tag": "0000_glossy_blazing_skull",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1765424566632,
-      "tag": "0001_absent_chronomancer",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1765426952297,
-      "tag": "0002_hot_wild_pack",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1765428943724,
-      "tag": "0003_robust_matthew_murdock",
+      "version": "7",
+      "when": 1765465430752,
+      "tag": "0000_clever_bloodscream",
       "breakpoints": true
     }
   ]
