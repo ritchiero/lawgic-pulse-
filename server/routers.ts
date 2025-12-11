@@ -1,7 +1,14 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
+import { z } from "zod";
+import { PRACTICE_AREA_CODES, PRACTICE_AREAS } from "../shared/practiceAreas";
+import * as db from "./db";
+import { createCheckoutSession } from "./services/stripeService";
+import { sendWelcomeEmail } from "./services/emailService";
+import { TRPCError } from "@trpc/server";
+import { jobRouter } from "./routers/jobRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -17,12 +24,86 @@ export const appRouter = router({
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  subscription: router({
+    // Get practice areas catalog
+    getPracticeAreas: publicProcedure.query(() => {
+      return PRACTICE_AREA_CODES.map(code => ({
+        code,
+        name: PRACTICE_AREAS[code].name
+      }));
+    }),
+
+    // Create subscription and get checkout URL
+    create: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        name: z.string().optional(),
+        areas: z.array(z.string()).min(1, "Selecciona al menos un área")
+      }))
+      .mutation(async ({ input }) => {
+        // Validate areas
+        const validAreas = input.areas.filter(a => PRACTICE_AREA_CODES.includes(a));
+        if (validAreas.length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Áreas de práctica inválidas'
+          });
+        }
+
+        // Create user (or get existing)
+        let user = await db.getUserByOpenId(input.email);
+        if (!user) {
+          await db.upsertUser({
+            openId: input.email,
+            email: input.email,
+            name: input.name || null,
+            role: 'user'
+          });
+          user = await db.getUserByOpenId(input.email);
+        }
+
+        if (!user) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Error creando usuario'
+          });
+        }
+
+        // Create pending subscription
+        await db.createSubscription({
+          userId: user.id,
+          status: 'pending'
+        });
+
+        // Save selected areas temporarily (will be confirmed after payment)
+        await db.setUserAreas(user.id, validAreas);
+
+        // Create Stripe checkout session
+        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+        const checkoutUrl = await createCheckoutSession({
+          email: input.email,
+          userId: user.id,
+          areas: validAreas,
+          successUrl: `${baseUrl}/gracias?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${baseUrl}/?cancelled=true`
+        });
+
+        return { checkoutUrl };
+      }),
+
+    // Get user subscription status
+    getStatus: protectedProcedure.query(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      const areas = await db.getUserAreas(ctx.user.id);
+
+      return {
+        subscription,
+        areas: areas.map(a => a.areaCode)
+      };
+    })
+  }),
+
+  job: jobRouter,
 });
 
 export type AppRouter = typeof appRouter;

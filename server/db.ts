@@ -1,6 +1,13 @@
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, users, 
+  subscriptions, InsertSubscription,
+  userAreas, InsertUserArea,
+  dofDocuments, InsertDofDocument,
+  sentAlerts, InsertSentAlert,
+  webhookEvents, InsertWebhookEvent
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +96,131 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Subscription helpers
+export async function createSubscription(data: InsertSubscription) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(subscriptions).values(data);
+  return result;
+}
+
+export async function getSubscriptionByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function updateSubscription(userId: number, data: Partial<InsertSubscription>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(subscriptions).set(data).where(eq(subscriptions.userId, userId));
+}
+
+export async function getActiveSubscriptions() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(subscriptions).where(eq(subscriptions.status, "active"));
+}
+
+// User areas helpers
+export async function setUserAreas(userId: number, areaCodes: string[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Delete existing areas
+  await db.delete(userAreas).where(eq(userAreas.userId, userId));
+  
+  // Insert new areas
+  if (areaCodes.length > 0) {
+    await db.insert(userAreas).values(
+      areaCodes.map(code => ({ userId, areaCode: code }))
+    );
+  }
+}
+
+export async function getUserAreas(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userAreas).where(eq(userAreas.userId, userId));
+}
+
+// DOF documents helpers
+export async function createDofDocument(data: InsertDofDocument) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dofDocuments).values(data);
+  return result;
+}
+
+export async function getUnprocessedDocuments() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dofDocuments).where(eq(dofDocuments.processed, 0));
+}
+
+export async function updateDocumentProcessed(id: number, aiSummary: string, detectedAreas: string[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dofDocuments).set({
+    aiSummary,
+    detectedAreas: JSON.stringify(detectedAreas),
+    processed: 1
+  }).where(eq(dofDocuments.id, id));
+}
+
+export async function getDocumentsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  return db.select().from(dofDocuments)
+    .where(and(
+      eq(dofDocuments.processed, 1)
+    ));
+}
+
+// Sent alerts helpers
+export async function createSentAlert(data: InsertSentAlert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(sentAlerts).values(data);
+}
+
+export async function hasAlertBeenSent(userId: number, documentId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(sentAlerts)
+    .where(and(
+      eq(sentAlerts.userId, userId),
+      eq(sentAlerts.documentId, documentId)
+    ))
+    .limit(1);
+  return result.length > 0;
+}
+
+// Webhook events helpers
+export async function createWebhookEvent(data: InsertWebhookEvent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(webhookEvents).values(data);
+  return result;
+}
+
+export async function getWebhookEventByStripeId(stripeEventId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(webhookEvents)
+    .where(eq(webhookEvents.stripeEventId, stripeEventId))
+    .limit(1);
+  return result[0];
+}
+
+export async function markWebhookProcessed(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(webhookEvents).set({ processed: 1 }).where(eq(webhookEvents.id, id));
+}
