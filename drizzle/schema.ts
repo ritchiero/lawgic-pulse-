@@ -35,6 +35,7 @@ export const subscriptions = mysqlTable("subscriptions", {
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
   status: mysqlEnum("status", ["pending", "active", "cancelled", "past_due"]).default("pending").notNull(),
   currentPeriodEnd: timestamp("currentPeriodEnd"),
+  customKeywords: text("customKeywords"), // User-defined keywords for personalized alerts (comma-separated)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

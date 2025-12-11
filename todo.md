@@ -61,3 +61,18 @@
 
 ## Bugs
 - [x] Error 404 "Unknown hostname" al redirigir después del registro (corregido: usando ruta relativa)
+
+## Dashboard de Usuario
+- [x] Crear página de dashboard protegida
+- [x] Mostrar áreas de práctica actuales
+- [x] Permitir agregar/quitar áreas predefinidas
+- [x] Campo para keywords personalizados
+- [x] Botón de cancelar suscripción
+- [ ] Ver historial de alertas recibidas (pendiente)
+
+## Expansión de Áreas de Práctica
+- [x] Expandir de 12 a 25 áreas predefinidas
+- [x] Agregar campo de keywords personalizados en schema
+- [x] Actualizar formulario de registro con nuevas áreas
+- [x] Actualizar landing page con contador de 25 áreas
+- [ ] Actualizar clasificador de IA para usar keywords personalizados (pendiente)

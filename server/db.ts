@@ -288,3 +288,31 @@ export async function createSentWeeklyAlert(alert: {
   
   await db.insert(sentWeeklyAlerts).values(alert);
 }
+
+// Custom keywords management
+export async function updateCustomKeywords(userId: number, keywords: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update custom keywords: database not available");
+    return;
+  }
+
+  await db.update(subscriptions)
+    .set({ customKeywords: keywords })
+    .where(eq(subscriptions.userId, userId));
+}
+
+export async function getCustomKeywords(userId: number): Promise<string | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get custom keywords: database not available");
+    return null;
+  }
+
+  const result = await db.select({ customKeywords: subscriptions.customKeywords })
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .limit(1);
+
+  return result.length > 0 ? result[0].customKeywords : null;
+}

@@ -99,7 +99,7 @@ export default function Home() {
               <div className="text-sm uppercase tracking-wide text-muted-foreground">MXN/mes</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-1">12</div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-1">25</div>
               <div className="text-sm uppercase tracking-wide text-muted-foreground">Áreas de práctica</div>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function Home() {
               {/* Practice Areas */}
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">
-                  Áreas de práctica <span className="text-muted-foreground font-normal">(selecciona al menos una)</span>
+                  Áreas de práctica ({selectedAreas.length}/25) <span className="text-muted-foreground font-normal">(selecciona al menos una)</span>
                 </Label>
 
                 {areasLoading ? (

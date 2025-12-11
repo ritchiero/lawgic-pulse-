@@ -63,12 +63,20 @@ export default function Gracias() {
           </div>
 
           {/* CTA */}
-          <a
-            href="/"
-            className="inline-block text-primary hover:underline font-medium"
-          >
-            ← Volver al inicio
-          </a>
+          <div className="flex gap-4 justify-center">
+            <a
+              href="/dashboard"
+              className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 font-medium transition-colors"
+            >
+              Ir a mi Dashboard →
+            </a>
+            <a
+              href="/"
+              className="inline-block text-muted-foreground hover:underline font-medium"
+            >
+              ← Volver al inicio
+            </a>
+          </div>
         </div>
 
         {/* Footer */}

@@ -108,11 +108,67 @@ export const appRouter = router({
     getStatus: protectedProcedure.query(async ({ ctx }) => {
       const subscription = await db.getSubscriptionByUserId(ctx.user.id);
       const areas = await db.getUserAreas(ctx.user.id);
+      const customKeywords = await db.getCustomKeywords(ctx.user.id);
 
       return {
         subscription,
-        areas: areas.map(a => a.areaCode)
+        areas: areas.map(a => a.areaCode),
+        customKeywords: customKeywords || ''
       };
+    }),
+
+    // Update user areas
+    updateAreas: protectedProcedure
+      .input(z.object({
+        areas: z.array(z.string()).min(1, 'Selecciona al menos un área')
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const validAreas = input.areas.filter(a => PRACTICE_AREA_CODES.includes(a));
+        if (validAreas.length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Áreas de práctica inválidas'
+          });
+        }
+
+        await db.setUserAreas(ctx.user.id, validAreas);
+        return { success: true };
+      }),
+
+    // Update custom keywords
+    updateKeywords: protectedProcedure
+      .input(z.object({
+        keywords: z.string()
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateCustomKeywords(ctx.user.id, input.keywords);
+        return { success: true };
+      }),
+
+    // Cancel subscription
+    cancel: protectedProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No se encontró suscripción activa'
+        });
+      }
+
+      await db.updateSubscription(ctx.user.id, { status: 'cancelled' });
+
+      // Notify owner
+      try {
+        const { notifyOwner } = await import('./_core/notification');
+        await notifyOwner({
+          title: '❌ Lawgic Pulse - Cancelación de suscripción',
+          content: `Usuario: ${ctx.user.email}\nID: ${ctx.user.id}`
+        });
+      } catch (error) {
+        console.error('[Subscription] Error notifying owner:', error);
+      }
+
+      return { success: true };
     })
   }),
 
