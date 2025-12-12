@@ -175,6 +175,14 @@ export async function getDocumentsByDate(date: Date) {
     );
 }
 
+export async function updateDofDocument(id: number, data: Partial<InsertDofDocument>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dofDocuments)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(dofDocuments.id, id));
+}
+
 // Sent alerts helpers
 export async function createSentAlert(data: InsertSentAlert) {
   const db = await getDb();
