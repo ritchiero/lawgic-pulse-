@@ -118,3 +118,11 @@
 - [x] Desactivar verificación SSL para desarrollo/pruebas (httpsAgent con rejectUnauthorized: false)
 - [x] Configurar headers y user-agent más robustos (Chrome 120, headers completos)
 - [ ] Implementar fallback a servicio de scraping alternativo (pendiente si es necesario)
+
+## Bugs Reportados en Producción
+- [ ] Error tRPC: Devuelve HTML en lugar de JSON ("Unexpected token '<'") - Necesita más investigación
+- [x] Error SSL persiste en job diario en producción (corregido y verificado)
+- [x] Scraper encuentra documentos pero guarda 0 (corregido: adaptado de MySQL a PostgreSQL)
+
+## Desactivar Notificaciones de Error
+- [x] Desactivar notificaciones de error en dailyJob para detener spam de emails

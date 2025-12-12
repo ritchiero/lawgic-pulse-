@@ -145,10 +145,11 @@ export async function runDailyJob() {
   } catch (error) {
     console.error('[Daily Job] Fatal error:', error);
 
-    await notifyOwner({
-      title: '❌ Lawgic Pulse - Error en job diario',
-      content: `Error: ${error}`
-    });
+    // NOTIFICATIONS DISABLED - Uncomment to re-enable error notifications
+    // await notifyOwner({
+    //   title: '❌ Lawgic Pulse - Error en job diario',
+    //   content: `Error: ${error}`
+    // });
   }
 }
 

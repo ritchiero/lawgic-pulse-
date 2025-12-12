@@ -149,9 +149,11 @@ export async function saveScrapedDocuments(
         s3Key
       });
       
-      // MySQL insert result doesn't have insertId in the type, but it exists at runtime
-      const insertId = (result as any).insertId;
-      if (insertId) savedIds.push(Number(insertId));
+      // PostgreSQL returns the inserted row with .returning()
+      if (result && result.id) {
+        savedIds.push(result.id);
+        console.log(`[DOF Scraper] Saved document ID ${result.id}: ${doc.title.substring(0, 60)}...`);
+      }
       
     } catch (error) {
       console.error(`[DOF Scraper] Error saving document: ${doc.title}`, error);
