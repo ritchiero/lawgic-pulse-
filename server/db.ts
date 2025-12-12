@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { 
@@ -166,7 +166,13 @@ export async function getDocumentsByDate(date: Date) {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
   
-  return db.select().from(dofDocuments);
+  return db.select().from(dofDocuments)
+    .where(
+      and(
+        gte(dofDocuments.publishedDate, startOfDay),
+        lte(dofDocuments.publishedDate, endOfDay)
+      )
+    );
 }
 
 // Sent alerts helpers
