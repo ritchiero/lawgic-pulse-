@@ -27,6 +27,10 @@ function getWeekNumber(date: Date): { week: number; year: number } {
 }
 
 export async function runWeeklyJob() {
+  // ⚠️ JOB DESACTIVADO TEMPORALMENTE - Para reactivar, elimina este return
+  console.log('[Weekly Job] DESACTIVADO - No se ejecutará');
+  return;
+  
   const startTime = Date.now();
   console.log('[Weekly Job] Starting...');
 

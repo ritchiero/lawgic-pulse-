@@ -126,3 +126,8 @@
 
 ## Desactivar Notificaciones de Error
 - [x] Desactivar notificaciones de error en dailyJob para detener spam de emails
+
+## URGENTE: Detener Job Automático
+- [ ] Subir código a GitHub
+- [ ] Desactivar completamente dailyJob y weeklyJob
+- [ ] Verificar que no hay tareas programadas activas

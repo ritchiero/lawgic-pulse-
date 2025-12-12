@@ -15,6 +15,10 @@ import { notifyOwner } from '../_core/notification';
 import * as db from '../db';
 
 export async function runDailyJob() {
+  // ⚠️ JOB DESACTIVADO TEMPORALMENTE - Para reactivar, elimina este return
+  console.log('[Daily Job] DESACTIVADO - No se ejecutará');
+  return;
+  
   const startTime = Date.now();
   console.log('[Daily Job] Starting...');
 
